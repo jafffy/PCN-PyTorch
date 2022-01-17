@@ -26,6 +26,9 @@ network.to(DEVICE)
 
 # testing: evaluate the mean cd loss
 network.eval()
+
+
+
 with torch.no_grad():
     total_loss, iter_count = 0, 0
     for i, data in enumerate(test_dataloader, 1):
