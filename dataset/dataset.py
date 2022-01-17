@@ -77,14 +77,16 @@ class S3DIS(Data.Dataset):
         #         self.metadata.append((partial_input, ground_truth))
 
     def __getitem__(self, index):
-        incomplete_input = np.asarray(dataset.utils.PCDUtil.read_pcvfile(self.incomplete_path)[1], dtype='f4')
-        complete_input = np.asarray(dataset.utils.PCDUtil.read_pcvfile(self.complete_path)[1], dtype='f4')
+        rgb, geo = dataset.utils.PCDUtil.read_pcd_as_rgb_geo(self.incomplete_path, align_center=True)
+        incomplete_input = np.asarray(geo, dtype='f4')
+        _, geo = dataset.utils.PCDUtil.read_pcd_as_rgb_geo(self.complete_path, align_center=True)
+        complete_input = np.asarray(geo, dtype='f4')
 
         # to torch tensor
         incomplete_input = torch.from_numpy(incomplete_input)
         complete_input = torch.from_numpy(complete_input)
-
-        return incomplete_input, complete_input
+        # rgb = torch.from_numpy(rgb)
+        return incomplete_input, complete_input, rgb
 
     def __len__(self):
         return 1
