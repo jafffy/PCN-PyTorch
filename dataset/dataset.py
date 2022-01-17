@@ -3,13 +3,16 @@ import random
 
 import numpy as np
 import torch
-from torch._C import dtype
 import torch.utils.data as Data
 from open3d import *
 
 import sys
+
 sys.path.append('.')
 sys.path.append('..')
+sys.path.append('../..')
+import dataset.utils
+
 from utils import resample_pcd, show_point_cloud
 
 
@@ -51,6 +54,42 @@ class ShapeNet(Data.Dataset):
     def __len__(self):
         return len(self.metadata)
 
+
+class S3DIS(Data.Dataset):
+    def __init__(self, incomplete_path, complete_path, num_input=2048, num_coarse=1024, num_dense=16384, split='train',
+                 num_scans=8):
+        self.incomplete_path = incomplete_path
+        self.complete_path = complete_path
+        # self.partial_path = partial_path
+        # self.gt_path = gt_path
+        # self.num_input = num_input
+        # self.num_coarse = num_coarse
+        # self.num_dense = num_dense
+        #
+        # with open('dataset/car_split/{}.list'.format(split), 'r') as f:
+        #     filenames = [line.strip() for line in f]
+        #
+        # self.metadata = list()
+        # for filename in filenames:
+        #     for i in range(num_scans):
+        #         partial_input = os.path.join(partial_path, 'pcd', filename, '{}.pcd'.format(i))
+        #         ground_truth = os.path.join(gt_path, filename, 'model.pcd')
+        #         self.metadata.append((partial_input, ground_truth))
+
+    def __getitem__(self, index):
+        rgb, geo = dataset.utils.PCDUtil.read_pcd_as_rgb_geo(self.incomplete_path, align_center=True)
+        incomplete_input = np.asarray(geo, dtype='f4')
+        _, geo = dataset.utils.PCDUtil.read_pcd_as_rgb_geo(self.complete_path, align_center=True)
+        complete_input = np.asarray(geo, dtype='f4')
+
+        # to torch tensor
+        incomplete_input = torch.from_numpy(incomplete_input)
+        complete_input = torch.from_numpy(complete_input)
+        # rgb = torch.from_numpy(rgb)
+        return incomplete_input, complete_input, rgb
+
+    def __len__(self):
+        return 1
 
 if __name__ == '__main__':
     ROOT = "/home/rico/Workspace/Dataset/shapenetpcn"
